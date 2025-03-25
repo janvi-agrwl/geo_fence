@@ -39,7 +39,7 @@ def decode_jwt(jwt_token):
     decoded = jwt.decode(jwt_token, options={"verify_signature": False})
     return decoded
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route('/api/login', methods=['POST'])
 def signin():
     try:
         data = request.get_json()
@@ -118,3 +118,69 @@ def refresh():
 
     except Exception as e :
         return jsonify({"message":"error occured", 'error': str(e)}),500
+    
+
+
+@auth_bp.route('/api/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    try:
+
+        if 'Authorization' in request.headers:
+
+            token=request.headers.get('Authorization')
+            print (token)
+            return "okay"
+            
+            token = request.headers['Authorization'].split(" ")[1]  # Assuming format 'Bearer <token>'
+            print(token)
+        
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 403
+        
+        try:
+            # Decode the token to get the user_id
+            decoded_token = jwt.decode(token, ACCESS_TOKEN_SECRET, algorithms=["HS256"])
+            print(decoded_token)
+            current_user_id = decoded_token['user_id']
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token!'}), 403
+        
+        data = request.get_json()
+        refresh_token = data.get('refresh_token')
+
+
+        if not refresh_token:
+            return jsonify({'message': 'Refresh token is required!'}), 400
+        
+        payload=decode_jwt(refresh_token)
+        
+        user_id=payload['user_id']
+
+
+        
+
+
+        stored_token = db.session.query(UserToken).filter(and_(UserToken.token==refresh_token,UserToken.user_id==current_user_id)).first()
+
+        
+        if stored_token:
+            db.session.delete(stored_token)
+            db.session.commit()
+
+        return jsonify({'message': 'Logout successful!'}), 200
+    except Exception as e:
+        return jsonify({'message': 'An error occurred!', 'error': str(e)}), 500
+
+
+@auth_bp.route("/api/get_token_from_header")
+def get_token():
+    if 'Authorization' in request.headers:
+            
+        token=request.headers.get('Authorization')
+        print (token)
+        return "okay"
+    else:
+        return "not okay"

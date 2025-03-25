@@ -1,0 +1,9 @@
+# Ignore the migrations folder
+migrations/
+
+# Ignore environment variables file
+.env
+
+# Ignore any other unnecessary files or folders (optional)
+*.pyc
+__pycache__/

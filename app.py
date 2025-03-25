@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 import secrets
 
@@ -8,6 +9,7 @@ from flask_migrate import Migrate
 from model.models import db
 from api.auth import auth_bp
 from api.location import location_bp
+from api.create import create_bp
 # Create a Flask application
 import pymysql
 app = Flask(__name__)
@@ -24,6 +26,12 @@ jwt = JWTManager(app)
 
 
 
+"""key = os.urandom(32)  # AES-256 key length is 32 bytes (256 bits)
+print("key",key)
+# Convert to hexadecimal string to store in .env
+hex_key = key.hex()
+print("hex_key",hex_key)"""
+
 # Define a route for the root URL
 @app.route('/')
 def hello_world():
@@ -32,10 +40,11 @@ def hello_world():
 
 #THIS HELPS GENERATE A LONG RANDOM SECRET KEY 
 """secret_key = secrets.token_hex(32)
-print(secret_key)"""
-
+print(secret_key)
+"""
 app.register_blueprint(auth_bp)
 app.register_blueprint(location_bp)
+app.register_blueprint(create_bp)
 
 # Run the application
 if __name__ == '__main__':
